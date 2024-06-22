@@ -3,6 +3,9 @@ import { useState } from 'react';
 import './App.css'
 
 
+
+
+
 function calculatewinner(squares){
   const winningCombination=[
     [0,1,2],
@@ -13,7 +16,7 @@ function calculatewinner(squares){
     [1,4,7],
     [2,5,8],
 
-    [,4,8],
+    [0,4,8],
     [2,4,6],
 
   ];
@@ -30,34 +33,34 @@ function calculatewinner(squares){
 
 
 
-function Square({value,onSquareClick}){
-  console.log('value',value);
-   
+function Square({ value, onSquareClick }) {
+  const classes = value === 'X' ? 'square X' : value === 'O' ? 'square O' : 'square';
 
- 
-//  console.log(`Square rendered` )
-  return <button onClick={onSquareClick} className='square'>
-    {" "}
-    {value}{" "}
-  </button>
+  return (
+    <button className={classes} onClick={onSquareClick}>
+      {value}
+    </button>
+  );
 }
 
 
-function Board(){
+
+function Board({updateWinCounts  }){
   // console.log(`Board rendered` )
    
   const[squares,setSquares]=useState(Array(9).fill(null));
   const[xisNext,setXisNext]=useState(true);
+  
 
   function handleClick(i){
       //  alert(i)
-      if(squares[i]){
+      if(squares[i] || calculatewinner(squares)){
         return;
       }
 
        const updatedSquare = squares.slice();
        if(xisNext){
-       updatedSquare[i]='X';
+       updatedSquare [i]='X';
        setXisNext(false)
        }else{
         updatedSquare[i]='O';
@@ -66,11 +69,33 @@ function Board(){
 
 
        setSquares(updatedSquare);
+        const winner = calculatewinner(updatedSquare);
+        if (winner) {
+          updateWinCounts(winner); // Notify App component of the winner to update win counts
+        }
+
+       
+  };
+
+  
+  const winner = calculatewinner(squares);
+  console.log('winner', winner);
+  let status;
+  if(winner){
+    status=`Winner is ${winner} 🥳`
+    
+  }else{
+    status=`Next player is : ${xisNext ? 'X': 'O'}`
   }
+  
 
   return(
    <>
-
+    <div className='status'>{status}</div>
+  
+    <button className='btn' onClick={() => setSquares(Array(9).fill(null))} style={{
+      margin:"10px 0"
+    }}>Reset</button>
     <div className="board-row">
     <Square value={squares[0]} onSquareClick={()=>handleClick(0)}/>
     <Square value={squares[1]} onSquareClick={()=>handleClick(1)}/>
@@ -92,19 +117,43 @@ function Board(){
 
 
 function App() {
-  // console.log(`App rendered` )
-return(
-  <div style={{
-    display:'flex',
-    alignItems:'center',
-    justifyContent:'center',
-    flexDirection:'column'
-  }}>
-    <h1>Tic Tac Toe</h1>
-    <Board/>
-  
-  </div>
-)
- }
+  const [xWins, setXWins] = useState(0);
+  const [oWins, setOWins] = useState(0);
 
+  const updateWinCounts = (winner) => {
+    if (winner === 'X') {
+      setXWins(xWins + 1); // Increment X wins count
+    } else if (winner === 'O') {
+      setOWins(oWins + 1); // Increment O wins count
+    }
+  };
+
+  return (
+
+    
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+      }}
+    >
+      <h1>Tic Tac Toe</h1>
+      <div>X Wins: {xWins}</div>
+      <div>O Wins: {oWins}</div>
+      <div class="item-hints">
+  <div className="hint" data-position="4">
+    <span className="hint-radius"></span>
+    <span class="hint-dot">Tip</span>
+    <div className="hint-content do--split-children">
+      <p>Players take turns marking the spaces with X or O, and the winner is the first player to get three of their marks in a row, either horizontally, vertically, or diagonally.</p>
+    </div>
+  </div>
+</div>
+    
+      <Board updateWinCounts={updateWinCounts} />
+    </div>
+  );
+}
 export default App
